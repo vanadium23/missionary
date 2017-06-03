@@ -20,6 +20,9 @@
       <h2>
         Спасибо, что прошли - вот результат: {{ score() }} / {{ quiz.questions.length }}
       </h2>
+      <div class="button-wrapper">
+        <a class="button" v-on:click="reset()">Начать заново</a>
+      </div>
     </div>
   </div>
 </template>
@@ -29,35 +32,36 @@ import missions from '../missions';
 
 const shuffle = () => 0.5 - Math.random();
 
-const companies = missions.map(m => m.company);
-const questions = missions.sort(shuffle).map((m) => {
-  const answers = companies.filter(c => c !== m.company).sort(shuffle);
-  const responses = [{
-    text: m.company,
-    correct: true,
-  }];
-  for (let i = 0; i < 3; i += 1) {
-    responses.push({
-      text: answers[i],
-      correct: false,
-    });
-  }
-  return {
-    text: m.text,
-    responses: responses.sort(shuffle),
-  };
-}).slice(0, 10);
+function generateQuiz() {
+  const companies = missions.map(m => m.company);
+  const questions = missions.sort(shuffle).map((m) => {
+    const answers = companies.filter(c => c !== m.company).sort(shuffle);
+    const responses = [{
+      text: m.company,
+      correct: true,
+    }];
+    for (let i = 0; i < 3; i += 1) {
+      responses.push({
+        text: answers[i],
+        correct: false,
+      });
+    }
+    return {
+      text: m.text,
+      responses: responses.sort(shuffle),
+    };
+  }).slice(0, 10);
 
-// generate quiz
-const quiz = {
-  questions,
-};
+  return {
+    questions,
+  };
+}
 
 export default {
   name: 'quiz',
   data() {
     return {
-      quiz,
+      quiz: generateQuiz(),
       // Store current question index
       questionIndex: 0,
       // An array initialized with "false" values for each question
@@ -69,7 +73,9 @@ export default {
   methods: {
     // Go to next question
     choose(index) {
-      this.userResponses.push(this.quiz.questions[this.questionIndex].responses[index].correct);
+      const userResponse = this.quiz.questions[this.questionIndex].responses[index].correct;
+      this.$ga.event('quiz', 'progress', 'answer', userResponse);
+      this.userResponses.push(userResponse);
       this.questionIndex += 1;
     },
     // Return "true" count in userResponses
@@ -77,6 +83,13 @@ export default {
       const score = this.userResponses.filter(val => val).length;
       this.$ga.event('quiz', 'finish', 'score', score);
       return score;
+    },
+    // Reset quiz
+    reset() {
+      this.$ga.event('quiz', 'finish', 'reset', 1);
+      this.userResponses = [];
+      this.quiz = generateQuiz();
+      this.questionIndex = 0;
     },
   },
 };

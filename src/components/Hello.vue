@@ -11,29 +11,3 @@
     </div>
   </div>
 </template>
-
-<style scoped>
-  .desc {
-    margin: 20px;
-  }
-
-  .button-wrapper {
-    width: 20%;
-    margin: 0 auto;
-    padding-top: 100px;
-  }
-
-  .button {
-    background-color: ForestGreen;
-    border-radius: 5px;
-    color: white;
-    padding: 1em;
-    text-decoration: none;
-  }
-
-  .button:focus,
-  .button:hover {
-    background-color: DarkGreen;
-  }
-
-</style>
